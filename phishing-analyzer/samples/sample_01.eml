@@ -1,0 +1,14 @@
+From: "Bank Support" <support@secure-bank.invalid>
+To: jan.kowalski@example.invalid
+Subject: Urgent: confirm your account
+Date: Sat, 07 Nov 2026 10:15:00 +0100
+Message-ID: <20261107101500.12345@secure-bank.invalid>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Hello,
+
+We have detected unusual activity on your account. Please confirm your information.
+
+Support Team
