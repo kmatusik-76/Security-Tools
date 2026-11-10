@@ -10,7 +10,7 @@ class TestLoadEml(unittest.TestCase):
         sender = msg["FROM"].addresses[0]
         self.assertEqual(sender.display_name, "Bank Support")
         self.assertEqual(sender.addr_spec, "support@secure-bank.invalid")
-        self.assertEqual(msg["Subject"], "Pilne: potwierdź swoje konto")
+        self.assertEqual(msg["Subject"], "Urgent: confirm your account")
 
 if __name__=="__main__":
     unittest.main()
