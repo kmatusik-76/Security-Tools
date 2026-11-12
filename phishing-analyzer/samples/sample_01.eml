@@ -1,4 +1,8 @@
 Return-Path: <bounce@mailer-xyz.invalid>
+Authentication-Results: mx.example.invalid;
+ spf=pass smtp.mailfrom=mailer-xyz.invalid;
+ dkim=none;
+ dmarc=fail header.from=secure-bank.invalid
 From: "Bank Support" <support@secure-bank.invalid>
 Reply-To: help.desk@other-domain.invalid
 To: jan.kowalski@example.invalid

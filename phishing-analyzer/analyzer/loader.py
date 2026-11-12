@@ -5,6 +5,10 @@ from email.parser import BytesParser
 from pathlib import Path
 
 def load_eml(path):
+    '''
+    Reads and .eml file and parses it into a message object.
+    Headers are available as msg[<header_name>]
+    '''
     with Path(path).open("rb") as file:
         return BytesParser(policy=policy.default).parse(file)
 
