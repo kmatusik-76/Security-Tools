@@ -1,4 +1,5 @@
 import re
+from html.parser import HTMLParser
 from urllib.parse import urlsplit 
 
 URL_PATTERN = re.compile(r"https?://[^\s\"'<>]+", re.IGNORECASE)
@@ -28,3 +29,43 @@ def get_link_host(url):
         return urlsplit(url).hostname
     except ValueError:
         return None
+
+class _AnchorParser(HTMLParser):
+    """Collect (visible text, href) pairs for every <a href="..."> tag."""
+
+    def __init__(self):
+        super().__init__()
+        self.anchors=[]
+        self._href = None
+        self._text = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            self._href = dict(attrs).get("href")
+            self._text = []
+
+    def handle_data(self, data):
+        if self._href is not None:
+            self._text.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == "a" and self._href is not None:
+            text = " ".join("".join(self._text).split())
+            self.anchors.append({"text": text, "url": self._href.strip()})
+            self._href=None
+
+def get_html_links(msg):
+    """Extract links from the HTML parts together with their visible text.
+    e.g. <a href="https://evil.invalid">https://bank.invalid</a>.
+    This function returns both, so they can be compared later.
+    Returns: e.g. [{"text": "https://bank.invalid/login", "url": "https://evil.invalid/x"}]
+    """
+    anchors = []
+    for part in msg.walk():
+        if part.get_content_type() != "text/html" or part.is_attachment():
+            continue
+        parser = _AnchorParser()
+        parser.feed(part.get_content())
+        parser.close()
+        anchors.extend(parser.anchors)
+    return anchors

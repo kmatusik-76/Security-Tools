@@ -5,7 +5,7 @@ from pathlib import Path
 
 from analyzer.links import get_links
 from analyzer.loader import load_eml
-from analyzer.links import get_link_host, get_links
+from analyzer.links import get_link_host, get_links, get_html_links
 
 SAMPLE = Path(__file__).resolve().parent.parent / "samples" / "sample_01.eml"
 
@@ -60,6 +60,46 @@ class TestGetLinkHost(unittest.TestCase):
     def test_unparsable_url_gives_none(self):
         self.assertIsNone(get_link_host("http://[::1/x"))
 
+def html_message(html):
+    return parse(
+        b"From: a@example.invalid\n"
+        b"MIME-Version: 1.0\n"
+        b"Content-Type: text/html; charset=utf-8\n"
+        b"\n" + html + b"\n"
+    )
+
+
+class TestGetHtmlLinks(unittest.TestCase):
+    def test_plain_text_sample_has_no_html_links(self):
+        self.assertEqual(get_html_links(load_eml(SAMPLE)), [])
+
+    def test_text_and_url_can_differ(self):
+        msg = html_message(
+            b'<p>Log in: <a href="https://evil.invalid/x">https://bank.invalid/login</a></p>'
+        )
+        self.assertEqual(
+            get_html_links(msg),
+            [{"text": "https://bank.invalid/login", "url": "https://evil.invalid/x"}],
+        )
+
+    def test_nested_tags_and_whitespace_in_text(self):
+        msg = html_message(
+            b'<a href="https://one.invalid/"> <b>Click</b>\n   here </a>'
+            b'<a href="https://two.invalid/"><img src="logo.png"></a>'
+        )
+        self.assertEqual(
+            get_html_links(msg),
+            [
+                {"text": "Click here", "url": "https://one.invalid/"},
+                {"text": "", "url": "https://two.invalid/"},
+            ],
+        )
+
+    def test_anchor_without_href_is_skipped(self):
+        msg = html_message(b'<a name="top">Top</a> <a href="https://one.invalid/">One</a>')
+        self.assertEqual(
+            get_html_links(msg), [{"text": "One", "url": "https://one.invalid/"}]
+        )
 
 if __name__ == "__main__":
     unittest.main()

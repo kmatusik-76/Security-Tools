@@ -101,7 +101,7 @@ python -m unittest discover -s tests -t . -v
 ## Roadmap
 
 - [x] Loading `.eml` files
-- [ ] Stage 1: header analysis (From, Reply-To, Return-Path, SPF/DKIM/DMARC)
-- [ ] Stage 2: link and attachment analysis
+- [x] Stage 1: header analysis (From, Reply-To, Return-Path, SPF/DKIM/DMARC)
+- [x] Stage 2: link and attachment analysis
 - [ ] Stage 3: risk rules and scoring
 - [ ] Stage 4: JSON / Markdown report
