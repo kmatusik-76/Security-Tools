@@ -1,4 +1,10 @@
+Return-Path: <bounce@mailer-xyz.invalid>
+Authentication-Results: mx.example.invalid;
+ spf=pass smtp.mailfrom=mailer-xyz.invalid;
+ dkim=none;
+ dmarc=fail header.from=secure-bank.invalid
 From: "Bank Support" <support@secure-bank.invalid>
+Reply-To: help.desk@other-domain.invalid
 To: jan.kowalski@example.invalid
 Subject: Urgent: confirm your account
 Date: Sat, 07 Nov 2026 10:15:00 +0100
@@ -10,5 +16,7 @@ Content-Transfer-Encoding: 8bit
 Hello,
 
 We have detected unusual activity on your account. Please confirm your information.
+
+Confirm here: http://secure-bank.invalid.login-check.invalid/verify?id=12345.
 
 Support Team
