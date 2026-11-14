@@ -2,6 +2,11 @@ import unittest
 
 from analyzer.rules import rule_reply_to_mismatch
 from analyzer.rules import rule_reply_to_mismatch, rule_return_path_mismatch
+from analyzer.rules import (
+    rule_auth_failed,
+    rule_reply_to_mismatch,
+    rule_return_path_mismatch,
+)
 
 
 def addr(address):
@@ -71,6 +76,25 @@ class TestRuleReturnPathMismatch(unittest.TestCase):
         self.assertIsNone(
             rule_return_path_mismatch({"From": addr("a@bank.invalid"), "Return-Path": None})
         )
+
+class TestRuleAuthFailed(unittest.TestCase):
+    def test_dmarc_fail_is_reported(self):
+        finding = rule_auth_failed({"spf": "pass", "dkim": "none", "dmarc": "fail"})
+        self.assertEqual(finding["rule"], "auth_failed")
+        self.assertEqual(finding["score"], 30)
+        self.assertIn("dmarc=fail", finding["detail"])
+
+    def test_scores_of_several_failures_are_added(self):
+        finding = rule_auth_failed({"spf": "softfail", "dkim": "fail", "dmarc": "fail"})
+        self.assertEqual(finding["score"], 30 + 5 + 15)
+        self.assertIn("spf=softfail", finding["detail"])
+        self.assertIn("dkim=fail", finding["detail"])
+
+    def test_all_pass_is_not_reported(self):
+        self.assertIsNone(rule_auth_failed({"spf": "pass", "dkim": "pass", "dmarc": "pass"}))
+
+    def test_missing_results_are_not_reported(self):
+        self.assertIsNone(rule_auth_failed({"spf": None, "dkim": None, "dmarc": None}))
 
 
 if __name__ == "__main__":
