@@ -41,3 +41,31 @@ def rule_reply_to_mismatch(addresses):
             f"From domain {sender['domain']}"
         ),
     }
+
+def rule_return_path_mismatch(addresses):
+    """
+    Report a Return-Path in a different domain than from.
+    SPF checks the Return-Path domain, not From, so a sender can pass SPF with its own domain
+    while showing someone else's in from.
+
+    Args:
+        addresses: dict returned by get_sender_addresses()
+    
+    Returns:
+        dict: a finding {"rule", "score", "detail"} if the domains differ.
+        None if they match or if From or Return-Path is missing.
+    """
+    sender = addresses.get("From")
+    return_path = addresses.get("Return-Path")
+    if sender is None or return_path is None:
+        return None
+    if _related_domains(sender["domain"], return_path["domain"]):
+        return None
+    return {
+        "rule": "return_path_mismatch",
+        "score": 10,
+        "detail": (
+            f"Return-Path domain {return_path['domain']} differs from "
+            f"From domain {sender['domain']}"
+        )
+    }
