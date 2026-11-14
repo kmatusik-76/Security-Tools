@@ -4,6 +4,11 @@ A finding is a dict:
 "rule" is a short identifier, "score" the risk points it adds,
 "detail" a human-readable explanation of why it was reported.
 """
+AUTH_SCORES = {
+    "dmarc": {"fail": 30},
+    "spf": {"fail": 15, 'softfail': 5},
+    'dkim': {'fail':15}
+}
 
 
 def _related_domains(a, b):
@@ -68,4 +73,32 @@ def rule_return_path_mismatch(addresses):
             f"Return-Path domain {return_path['domain']} differs from "
             f"From domain {sender['domain']}"
         )
+    }
+
+def rule_auth_failed(auth):
+    """
+    Report failed SPF, DKIM, DMARC cheks.
+    Severity depends on the method and the result.
+
+    Args:
+        auth: dict returned by get_auth_results().
+
+    Returns:
+        dict: a finding {"rule", "score", "detail"} with the points of all
+        failed checks added up, e.g. detail "dmarc=fail, spf=softfail".
+        None if no check failed.
+    """
+    score = 0
+    failed = []
+    for method, scores in AUTH_SCORES.items():
+        result = auth.get(method)
+        if result in scores:
+            score += scores[result]
+            failed.append(f"{method}={result}")
+    if not failed:
+        return None
+    return {
+        "rule": "auth_failed",
+        "score": score,
+        "detail": "Failed authentication cheks: " + ", ".join(failed),
     }
